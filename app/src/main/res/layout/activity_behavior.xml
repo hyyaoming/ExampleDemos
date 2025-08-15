@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 模拟地图区域 -->
+    <FrameLayout
+        android:id="@+id/map_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#B3E5FC" />
+
+    <!-- BottomSheet 内容 -->
+    <LinearLayout
+        android:id="@+id/bottom_sheet"
+        android:orientation="vertical"
+        android:background="@drawable/bg_bottom_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+
+        <!-- 手柄 -->
+        <View
+            android:layout_width="36dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/handle_rounded" />
+
+        <!-- 列表 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never"
+            android:nestedScrollingEnabled="true"/>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

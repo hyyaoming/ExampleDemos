@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/btnPrintLog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="打印日志" />
+
+    <Button
+        android:id="@+id/btnWriteLog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="写日志" />
+
+    <Button
+        android:id="@+id/btnFlushLog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="立即flush写入"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/btnTriggerUpload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="触发上传"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

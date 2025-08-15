@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="WaveViewKT">
+        <!-- 中心圆颜色-->
+        <attr name="center_color" format="color" />
+        <!-- 中心圆半径（起始扩散波纹的起始半径）-->
+        <attr name="center_radius" format="dimension" />
+        <!-- 扩散最大半径-->
+        <attr name="max_radius" format="dimension" />
+        <!-- 创建新的波纹的间隔时间(毫秒)-->
+        <attr name="wave_interval_time" format="integer" />
+        <!-- 一个波纹从创建到消失的持续时间(毫秒)-->
+        <attr name="wave_duration" format="integer" />
+        <!-- 波纹的宽度-->
+        <attr name="wave_width" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="CallingWaveView">
+        <attr name="initialRadius" format="dimension" />
+        <attr name="maxRadius" format="dimension" />
+        <attr name="duration" format="integer" />
+        <attr name="speed" format="integer" />
+        <attr name="color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="TripPointView">
+        <!-- 文字大小和颜色 -->
+        <attr name="textSize" format="dimension" />
+        <attr name="textColor" format="color" />
+
+        <!-- 顶部圆点颜色 -->
+        <attr name="topDotColor" format="color" />
+        <!-- 底部圆点颜色 -->
+        <attr name="bottomDotColor" format="color" />
+        <!-- 小圆颜色 -->
+        <attr name="smallDotColor" format="color" />
+
+        <!-- 圆点半径 -->
+        <attr name="dotRadius" format="dimension" />
+        <!-- 圆点与文字间距 -->
+        <attr name="dotTextGap" format="dimension" />
+        <!-- 两段文本间距 -->
+        <attr name="paragraphGap" format="dimension" />
+
+        <!-- 虚线颜色 -->
+        <attr name="dashColor" format="color" />
+        <!-- 虚线宽度 -->
+        <attr name="dashWidth" format="dimension" />
+        <!-- 虚线间隔 -->
+        <attr name="dashGap" format="dimension" />
+        <!-- 是否展示虚线 -->
+        <attr name="showDashLine" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="AmountUnitView">
+        <attr name="amountTextSize" format="dimension" />
+        <attr name="unitTextSize" format="dimension" />
+        <attr name="textSpacing" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="FontFitTextView">
+        <attr name="minTextSize" format="dimension" />
+        <attr name="maxTextSize" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="RedDotView">
+        <attr name="redDotValue" format="enum">
+            <enum name="empty" value="0" />
+            <enum name="dot" value="1" />
+            <enum name="number" value="2" />
+            <enum name="bubble" value="3" />
+        </attr>
+        <attr name="redDotCount" format="integer" />
+        <attr name="redDotBgColor" format="color" />
+        <attr name="redDotTextColor" format="color" />
+    </declare-styleable>
+
+
+</resources>

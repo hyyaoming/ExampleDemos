@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.example.sampleview.reddot.ui.RedDotView
+        android:id="@+id/redDotView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/btnReadRedDot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="read redDot"
+        android:textAllCaps="false" />
+
+    <com.example.sampleview.reddot.ui.RedDotView
+        android:id="@+id/redDotNumberView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/btnReadNumberRedDot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="read redDot"
+        android:textAllCaps="false" />
+
+    <com.example.sampleview.reddot.ui.RedDotView
+        android:id="@+id/tvAggregatorCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/btnReadCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="dynamic  Key"
+        android:textAllCaps="false" />
+</LinearLayout>
