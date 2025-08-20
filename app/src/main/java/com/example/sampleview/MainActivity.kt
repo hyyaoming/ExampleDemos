@@ -27,12 +27,14 @@ import com.example.sampleview.permission.PermissionActivity
 import com.example.sampleview.popupmanager.PopupManagerActivity
 import com.example.sampleview.reddot.RedDotTestActivity
 import com.example.sampleview.taskScheduler.test.TaskActivity
+import com.example.sampleview.taskflowengine.TaskFlowActivity
 import com.example.sampleview.trip.TripInfoActivity
 import com.example.sampleview.websocket.WebSocketActivity
 
 
 class MainActivity : AppCompatActivity() {
     private val classArray = listOf(
+        TaskFlowActivity::class.java,
         PopupManagerActivity::class.java,
         LoginActivity::class.java,
         HtmlActivity::class.java,
