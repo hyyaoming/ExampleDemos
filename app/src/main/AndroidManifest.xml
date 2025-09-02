@@ -55,6 +55,7 @@
         <activity android:name="com.example.sampleview.mvi.ui.LoginActivity" />
         <activity android:name="com.example.sampleview.popupmanager.PopupManagerActivity" />
         <activity android:name="com.example.sampleview.taskflowengine.TaskFlowActivity" />
+        <activity android:name="com.example.sampleview.eventtracker.EventTrackActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

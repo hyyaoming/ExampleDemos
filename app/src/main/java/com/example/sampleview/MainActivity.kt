@@ -15,6 +15,7 @@ import com.example.sampleview.behavior.BehaviorActivity
 import com.example.sampleview.behavior.BottomSheetActivity
 import com.example.sampleview.crash.TestCrashActivity
 import com.example.sampleview.edit.EditActivity
+import com.example.sampleview.eventtracker.EventTrackActivity
 import com.example.sampleview.file.FileActivity
 import com.example.sampleview.flexbox.FlexboxActivity
 import com.example.sampleview.flow.FlowBusTestActivity
@@ -34,6 +35,7 @@ import com.example.sampleview.websocket.WebSocketActivity
 
 class MainActivity : AppCompatActivity() {
     private val classArray = listOf(
+        EventTrackActivity::class.java,
         TaskFlowActivity::class.java,
         PopupManagerActivity::class.java,
         LoginActivity::class.java,

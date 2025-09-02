@@ -12,7 +12,7 @@ import android.view.animation.LinearInterpolator
 import androidx.annotation.Keep
 import androidx.core.content.ContextCompat
 import com.example.sampleview.R
-import com.example.yann.waveapplication.Utils
+import com.example.sampleview.Utils
 
 class WaveViewKT :View {
     private var centerColor: Int = ContextCompat.getColor(context, R.color.color_00B14F)

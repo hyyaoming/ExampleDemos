@@ -16,7 +16,7 @@ import com.example.sampleview.permission.impl.DefaultPermissionDescProvider
 import com.example.sampleview.permission.impl.PermissionUiHintSlice
 import com.example.sampleview.permission.impl.PermissionXBuilder
 import com.example.sampleview.permission.model.PermissionHost
-import com.example.yann.waveapplication.collectWithScope
+import com.example.sampleview.collectWithScope
 
 class PermissionActivity : AppCompatActivity(R.layout.permission_activity) {
 

@@ -2,18 +2,17 @@ package com.example.sampleview
 
 import android.app.Activity
 import android.app.Application
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.annotation.RequiresApi
 import java.lang.ref.WeakReference
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.atomic.AtomicInteger
 
-@RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 object AppActivityManager : Application.ActivityLifecycleCallbacks {
-
+    private val listeners = CopyOnWriteArrayList<AppStatusListener>()
     private val activityStack = mutableListOf<Activity>()
     private var _currentActivityRef: WeakReference<Activity>? = null
-    private var activityCount = 0
+    private val activityCount = AtomicInteger(0)
 
     /** 当前 Activity */
     val currentActivity: Activity?
@@ -25,7 +24,11 @@ object AppActivityManager : Application.ActivityLifecycleCallbacks {
 
     /** 应用是否在前台 */
     val isAppInForeground: Boolean
-        get() = activityCount > 0
+        get() = activityCount.get() > 0
+
+    fun getActivityStackSize(): Int {
+        return activityStack.size
+    }
 
     /** 注册生命周期回调 */
     fun init(application: Application) {
@@ -48,6 +51,17 @@ object AppActivityManager : Application.ActivityLifecycleCallbacks {
         activityStack.clear()
     }
 
+    fun finishAllActivitiesWithout(clazz: Class<out Activity>) {
+        val iterator = activityStack.iterator()
+        while (iterator.hasNext()) {
+            val activity = iterator.next()
+            if (activity.javaClass != clazz) {
+                activity.finish() // 先 finish
+                iterator.remove() // 再从列表移除
+            }
+        }
+    }
+
     /** 某个 Activity 是否存在 */
     fun isActivityAlive(clazz: Class<out Activity>): Boolean {
         return activityStack.any { it.javaClass == clazz && !it.isFinishing }
@@ -61,6 +75,14 @@ object AppActivityManager : Application.ActivityLifecycleCallbacks {
         }
     }
 
+    fun registerAppStatusListener(listener: AppStatusListener) {
+        listeners.addIfAbsent(listener)
+    }
+
+    fun unRegisterAppStatusListener(listener: AppStatusListener) {
+        listeners.remove(listener)
+    }
+
     // ---------------------- 生命周期回调 ----------------------
 
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
@@ -68,7 +90,11 @@ object AppActivityManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityStarted(activity: Activity) {
-        activityCount++
+        val count = activityCount.incrementAndGet()
+        if (count == 1) {
+            listeners.forEach { it.onForeground() }
+            AppLogger.d("AppActivityManager", "App is in foreground")
+        }
     }
 
     override fun onActivityResumed(activity: Activity) {
@@ -78,7 +104,11 @@ object AppActivityManager : Application.ActivityLifecycleCallbacks {
     override fun onActivityPaused(activity: Activity) {}
 
     override fun onActivityStopped(activity: Activity) {
-        activityCount--
+        val count = activityCount.decrementAndGet()
+        if (count == 0) {
+            listeners.forEach { it.onBackground() }
+            AppLogger.d("AppActivityManager", "App is in background")
+        }
     }
 
     override fun onActivityDestroyed(activity: Activity) {
@@ -89,4 +119,19 @@ object AppActivityManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+}
+
+/**
+ * App状态监听
+ */
+interface AppStatusListener {
+    /**
+     * 前台
+     */
+    fun onForeground()
+
+    /**
+     * 后台
+     */
+    fun onBackground()
 }

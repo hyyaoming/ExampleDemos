@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <Button
+        android:id="@+id/btnAddEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="添加事件"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btnFlushEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="上报事件"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/btnNormalEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="正常统计事件耗时" />
+
+    <Button
+        android:id="@+id/btnNormalResetEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="正常统计事件耗时并重置时间" />
+
+    <Button
+        android:id="@+id/btnColdLaunchTimeEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="基于冷启动统计事件时间" />
+
+    <Button
+        android:id="@+id/btnColdLaunchTimeResetEvent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="基于冷启动统计事件时间并重置时间" />
+
+</LinearLayout>

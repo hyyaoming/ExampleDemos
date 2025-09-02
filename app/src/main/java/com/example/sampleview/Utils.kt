@@ -1,4 +1,4 @@
-package com.example.yann.waveapplication
+package com.example.sampleview
 
 import android.content.Context
 import androidx.lifecycle.Lifecycle
@@ -9,6 +9,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Proxy
 
 object Utils {
 
@@ -40,3 +42,12 @@ fun <T> Flow<T>.collectWithLifecycle(lifecycleOwner: LifecycleOwner, block: susp
         }
     }
 }
+
+internal inline fun <reified T : Any> noOpDelegate(): T {
+    val javaClass = T::class.java
+    return Proxy.newProxyInstance(
+        javaClass.classLoader, arrayOf(javaClass), NO_OP_HANDLER
+    ) as T
+}
+
+private val NO_OP_HANDLER = InvocationHandler { _, _, _ -> }
