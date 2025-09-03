@@ -15,6 +15,12 @@ data class Event(
     val uploadMode: UploadMode,
 ) {
 
+    override fun toString(): String {
+        return "Event(eventId='$eventId', properties=${
+            properties.map { "${it.key}=${it.value}" }.joinToString(", ")
+        }, " + "timestamp=$timestamp, uploadMode=$uploadMode)"
+    }
+
     /**
      * [Event] 的构建器，用于链式构造事件对象。
      *

@@ -4,35 +4,33 @@ import com.example.sampleview.eventtracker.model.Event
 import com.example.sampleview.eventtracker.model.EventUploadResult
 
 /**
- * 基于 HTTP 的事件上报实现。
+ * HttpUploader 是一个默认的事件上报器实现。
  *
- * 模拟将事件通过网络发送到服务器。当前示例中使用 [println] 打印事件信息，
- * 在真实应用中可替换为实际的 HTTP 请求逻辑。
+ * - 用于上报单个事件或批量事件
  */
 class HttpUploader : EventUploader {
 
     /**
      * 上报单个事件。
      *
-     * @param event 待上报的事件
-     * @return [EventUploadResult.Success] 表示上报成功
+     * 当前实现直接返回 [EventUploadResult.Success]，包含上传的事件。
+     *
+     * @param event 待上报的事件对象
+     * @return [EventUploadResult.Success] 包含已上报的事件列表
      */
     override suspend fun upload(event: Event): EventUploadResult {
-        println("Uploading event '${event.eventId}' to $ with props=${event.properties}")
-        return EventUploadResult.Success
+        return EventUploadResult.Success(events = listOf(event))
     }
 
     /**
      * 批量上报事件。
      *
-     * @param events 待上报的事件列表
-     * @return [EventUploadResult.Success] 表示批量上报成功
+     * 当前实现直接返回 [EventUploadResult.Success]，包含上传的事件列表。
+     *
+     * @param originalEvents 待上报的事件列表
+     * @return [EventUploadResult.Success] 包含已上报的事件列表
      */
-    override suspend fun uploadBatch(events: List<Event>): EventUploadResult {
-        println("Uploading batch of ${events.size} events")
-        events.forEach { e ->
-            println(" - '${e.eventId}' with props=${e.properties}")
-        }
-        return EventUploadResult.Success
+    override suspend fun uploadBatch(originalEvents: List<Event>): EventUploadResult {
+        return EventUploadResult.Success(events = originalEvents)
     }
 }

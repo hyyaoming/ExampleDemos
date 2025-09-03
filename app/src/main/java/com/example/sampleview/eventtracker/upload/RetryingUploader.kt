@@ -1,45 +1,47 @@
 package com.example.sampleview.eventtracker.upload
 
+import com.example.sampleview.eventtracker.EventTrackerConfig
 import com.example.sampleview.eventtracker.model.Event
 import com.example.sampleview.eventtracker.model.EventUploadResult
 import kotlinx.coroutines.delay
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
- * 带重试机制的事件上报器。
+ * RetryingUploader 是一个带重试机制的事件上报器。
  *
- * 该实现包装一个 [base] 上报器，在上报失败时按照指数退避策略进行重试。
+ * 它包装了一个基础 [EventUploader]（通过 [EventTrackerConfig.UploaderConfig.uploader] 提供），
+ * 当上报单个事件或批量事件失败时，会按照指数退避策略自动重试，
+ * 直到达到最大重试次数 [EventTrackerConfig.UploaderConfig.maxRetry]。
  *
- * @param base 实际执行事件上报的 [EventUploader]
- * @param maxRetry 最大重试次数，默认 3 次
- * @param initialDelay 初始重试延迟，默认 1 秒
- * @param maxDelay 最大重试延迟，默认 5 秒
+ * ## 特性
+ * - 支持单条事件和批量事件重试
+ * - 使用配置 [uploaderConfig] 提供的上传器及重试策略
+ * - 指数退避重试，延迟从 [EventTrackerConfig.UploaderConfig.initialDelay] 开始，最多到 [EventTrackerConfig.UploaderConfig.maxDelay]
+ *
+ * @property uploaderConfig 上传器及重试策略配置
  */
 class RetryingUploader(
-    private val base: EventUploader,
-    private val maxRetry: Int = 3,
-    private val initialDelay: Duration = 1.seconds,
-    private val maxDelay: Duration = 5.seconds,
+    private val uploaderConfig: EventTrackerConfig.UploaderConfig,
 ) : EventUploader {
 
     /**
      * 执行带重试机制的 [block]。
      *
-     * 如果 [block] 抛出异常，会根据指数退避策略进行重试，直到达到 [maxRetry] 次。
+     * 如果 [block] 抛出异常，则按照指数退避策略重试，
+     * 直到达到 [EventTrackerConfig.UploaderConfig.maxRetry] 次。
+     * 超过最大次数仍失败时，会抛出最后一次异常。
      *
      * @param block 待执行的上报逻辑
      * @return [block] 返回值
-     * @throws Throwable 如果超过最大重试次数仍然失败，则抛出最后一次异常
+     * @throws Throwable 超过最大重试次数仍然失败时抛出
      */
-    private suspend fun <T> retry(block: suspend () -> T): T {
-        var currentDelay = initialDelay
-        repeat(maxRetry - 1) {
+    private suspend fun <R> retry(block: suspend () -> R): R {
+        var currentDelay = uploaderConfig.initialDelay
+        repeat(uploaderConfig.maxRetry - 1) {
             try {
                 return block()
             } catch (_: Throwable) {
                 delay(currentDelay)
-                currentDelay = (currentDelay * 2).coerceAtMost(maxDelay)
+                currentDelay = (currentDelay * 2).coerceAtMost(uploaderConfig.maxDelay)
             }
         }
         return block()
@@ -51,7 +53,8 @@ class RetryingUploader(
      * @param event 待上报事件
      * @return [EventUploadResult] 上报结果
      */
-    override suspend fun upload(event: Event): EventUploadResult = retry { base.upload(event) }
+    override suspend fun upload(event: Event): EventUploadResult =
+        retry { uploaderConfig.uploader.upload(event) }
 
     /**
      * 批量上报事件，失败时自动重试。
@@ -59,5 +62,6 @@ class RetryingUploader(
      * @param events 待上报事件列表
      * @return [EventUploadResult] 上报结果
      */
-    override suspend fun uploadBatch(events: List<Event>): EventUploadResult = retry { base.uploadBatch(events) }
+    override suspend fun uploadBatch(events: List<Event>): EventUploadResult =
+        retry { uploaderConfig.uploader.uploadBatch(events) }
 }

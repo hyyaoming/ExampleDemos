@@ -34,7 +34,7 @@ class EventTrackActivity : AppCompatActivity(R.layout.activity_event_track) {
         }
 
         btnFlushEvent.setOnClickListener {
-            EventTracker.flushEvent()
+            EventTracker.flushAll()
         }
 
         btnNormalEvent.setOnClickListener {

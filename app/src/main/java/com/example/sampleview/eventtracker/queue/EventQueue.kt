@@ -1,62 +1,50 @@
 package com.example.sampleview.eventtracker.queue
 
 import com.example.sampleview.eventtracker.model.Event
-import com.example.sampleview.eventtracker.model.EventUploadResult
 
 /**
- * 事件队列接口，用于管理待上报的事件。
+ * 抽象事件队列，支持事件的入队、批量出队、快照和容量管理。
  *
- * 提供入队、持久化、恢复以及批量操作的方法。
- * 可以实现不同的队列策略，例如内存队列、数据库队列等。
+ * 队列可用于缓存待上报事件，支持内存队列或持久化队列实现。
+ * `suspend` 函数表示可能会挂起，例如阻塞等待队列空间或执行 IO 操作。
  */
 interface EventQueue {
-
     /**
-     * 将事件加入队列。
+     * 将事件入队。
+     *
+     * 可能会挂起直到队列有空间。
      *
      * @param event 待入队的事件
      */
-    suspend fun enqueue(event: Event)
+    suspend fun offer(event: Event)
 
     /**
-     * 刷新队列，将队列中事件批量上报。
+     * 批量出队事件。
      *
-     * @return [EventUploadResult] 上报结果
+     * 返回最多 [max] 个事件，如果队列为空则返回空列表。
+     * 出队的事件会从队列中移除。
+     *
+     * @param max 批量出队的最大数量
+     * @return 已出队的事件列表
      */
-    suspend fun flush(): EventUploadResult
+    suspend fun pollBatch(max: Int): List<Event>
 
     /**
-     * 将事件持久化到存储（可选）。
+     * 返回队列的快照。
      *
-     * 默认实现为空，可根据需要实现本地缓存。
+     * 快照是只读副本，不会消费队列中的事件。
      *
-     * @param event 待持久化事件
+     * @return 当前队列中所有事件的列表
      */
-    suspend fun persist(event: Event) {}
+    suspend fun snapshot(): List<Event>
 
     /**
-     * 移除已持久化的事件。
-     *
-     * @param event 待移除的事件列表
+     * 清空队列，移除所有事件。
      */
-    suspend fun removePersisted(event: List<Event>)
+    suspend fun clear()
 
     /**
-     * 恢复已持久化的事件。
-     *
-     * @return 已恢复的事件列表，默认返回空列表
+     * 当前队列大小。
      */
-    suspend fun restore(): List<Event> = emptyList()
-
-    /**
-     * 获取队列快照，用于批量上报或查看当前队列状态。
-     *
-     * @return 当前队列事件列表的快照
-     */
-    fun snapshot(): List<Event>
-
-    /**
-     * 队列中事件数量。
-     */
-    val size: Int get() = 0
+    val size: Int
 }
