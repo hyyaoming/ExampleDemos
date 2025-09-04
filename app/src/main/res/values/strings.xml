@@ -7,4 +7,9 @@
     <string name="permissionx_request_install_packages">安装未知应用</string>
     <string name="permissionx_post_notification">通知</string>
     <string name="permissionx_body_sensor_background">后台访问身体传感器</string>
+    <string name="submit">提交</string>
+    <string name="problem">有问题</string>
+    <string name="no_problem">没问题</string>
+    <string name="problem_desc">我想说说其他原因</string>
+    <string name="requestVoc">request Voc</string>
 </resources>

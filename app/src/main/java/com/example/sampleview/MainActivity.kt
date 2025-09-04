@@ -30,11 +30,13 @@ import com.example.sampleview.reddot.RedDotTestActivity
 import com.example.sampleview.taskScheduler.test.TaskActivity
 import com.example.sampleview.taskflowengine.TaskFlowActivity
 import com.example.sampleview.trip.TripInfoActivity
+import com.example.sampleview.voc.VocActivity
 import com.example.sampleview.websocket.WebSocketActivity
 
 
 class MainActivity : AppCompatActivity() {
     private val classArray = listOf(
+        VocActivity::class.java,
         EventTrackActivity::class.java,
         TaskFlowActivity::class.java,
         PopupManagerActivity::class.java,
