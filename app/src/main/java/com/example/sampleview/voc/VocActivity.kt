@@ -16,8 +16,8 @@ class VocActivity : AppCompatActivity(R.layout.activity_voc) {
         super.onCreate(savedInstanceState)
         findViewById<Button>(R.id.btnRequestVoc).setOnClickListener {
             lifecycleScope.launch {
-                val vocResult = VocMediator().requestVoc(this@VocActivity, VocScene.CANCEL_ORDER)
-                AppLogger.d("VocActivity","VocActivity.vocResult:${vocResult}")
+                val vocResult = VocMediator.with(this@VocActivity).trigger(VocScene.CANCEL_ORDER)
+                AppLogger.d("VocActivity", "VocActivity.vocResult:${vocResult}")
             }
         }
     }
