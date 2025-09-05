@@ -6,6 +6,7 @@ import com.example.sampleview.eventtracker.model.EventUploadResult
 import com.example.sampleview.eventtracker.queue.EventQueue
 import com.example.sampleview.eventtracker.store.PersistentEventStore
 import com.example.sampleview.eventtracker.upload.EventUploader
+import com.example.sampleview.eventtracker.queue.InMemoryEventQueue
 
 /**
  * 事件上传策略接口。
@@ -43,7 +44,7 @@ interface EventUploadStrategy {
     /**
      * 事件队列，用于缓存事件。
      *
-     * 可以是内存队列（如 [com.example.sampleview.eventtracker.queue.InMemoryEventQueue]）或者支持持久化的队列。
+     * 可以是内存队列（如 [InMemoryEventQueue]）或者支持持久化的队列。
      * 对于即时上传策略可为空。
      */
     val queue: EventQueue?

@@ -3,6 +3,7 @@ package com.example.sampleview.eventtracker.dispatcher
 import com.example.sampleview.AppLogger
 import com.example.sampleview.eventtracker.model.Event
 import com.example.sampleview.eventtracker.model.EventUploadResult
+import com.example.sampleview.eventtracker.strategy.EventUploadStrategy
 import com.example.sampleview.eventtracker.strategy.UploadStrategyRegistry
 
 /**
@@ -37,7 +38,7 @@ class EventDispatcherImpl(private val strategyRegistry: UploadStrategyRegistry) 
     /**
      * 批量刷新所有策略队列，将已缓存的事件进行上报。
      *
-     * 遍历所有注册的策略，调用其 [com.example.sampleview.eventtracker.strategy.EventUploadStrategy.flush] 方法。
+     * 遍历所有注册的策略，调用其 [EventUploadStrategy.flush] 方法。
      * 将成功和失败结果合并返回：
      * - 如果有失败，返回最后一个失败结果
      * - 如果有成功事件且无失败，返回所有成功事件
@@ -66,7 +67,7 @@ class EventDispatcherImpl(private val strategyRegistry: UploadStrategyRegistry) 
     /**
      * 从持久化存储恢复事件到策略队列，用于应用重启或异常恢复场景。
      *
-     * 对每个策略调用 [com.example.sampleview.eventtracker.strategy.EventUploadStrategy.restore]，
+     * 对每个策略调用 [EventUploadStrategy.restore]，
      * 并捕获恢复过程中可能抛出的异常，打印警告日志。
      */
     override suspend fun restoreAll() {
