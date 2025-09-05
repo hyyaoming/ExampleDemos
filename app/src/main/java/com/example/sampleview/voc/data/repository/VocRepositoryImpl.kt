@@ -1,9 +1,9 @@
 package com.example.sampleview.voc.data.repository
 
+import com.example.sampleview.voc.data.datasource.VocDataSource
 import com.example.sampleview.voc.data.model.Answer
 import com.example.sampleview.voc.data.model.Question
 import com.example.sampleview.voc.data.model.VocScene
-import kotlinx.coroutines.delay
 
 /**
  * 问卷数据仓库默认实现（VocRepositoryImpl）。
@@ -14,7 +14,7 @@ import kotlinx.coroutines.delay
  *
  * 在实际项目中应替换为真实的数据源实现。
  */
-class VocRepositoryImpl : VocRepository {
+class VocRepositoryImpl(private val vocDataSource: VocDataSource) : VocRepository {
 
     /**
      * 获取问卷问题
@@ -23,8 +23,7 @@ class VocRepositoryImpl : VocRepository {
      * @return 总是返回 null。
      */
     override suspend fun getQuestions(scene: VocScene): Question? {
-        delay(200)
-        return null
+        return vocDataSource.getQuestions(scene)
     }
 
     /**
@@ -34,6 +33,6 @@ class VocRepositoryImpl : VocRepository {
      * @return 总是返回 false。
      */
     override suspend fun submitVoc(answer: Answer): Boolean {
-        return false
+        return vocDataSource.submitVoc(answer)
     }
 }

@@ -2,10 +2,10 @@ package com.example.sampleview.voc.core
 
 import androidx.fragment.app.FragmentActivity
 import com.example.sampleview.voc.core.VocMediator.Companion.with
+import com.example.sampleview.voc.data.datasource.VocDataSource
+import com.example.sampleview.voc.data.datasource.VocLocalDataSource
 import com.example.sampleview.voc.data.model.VocResult
 import com.example.sampleview.voc.data.model.VocScene
-import com.example.sampleview.voc.data.repository.VocRepository
-import com.example.sampleview.voc.data.repository.VocRepositoryImpl
 import com.example.sampleview.voc.data.store.VocHistoryStore
 import com.example.sampleview.voc.data.store.VocStore
 import com.example.sampleview.voc.strategy.VocShowStrategy
@@ -38,12 +38,12 @@ class VocMediator private constructor(private val activity: FragmentActivity) {
     }
 
     /**
-     * Builder 配置类，用于自定义问卷展示策略、UI、仓库和历史记录存储。
+     * Builder 配置类，用于自定义问卷展示策略、UI、数据源和历史记录存储。
      */
     class Builder(
         var vocStrategy: VocShowStrategy? = null,
         var vocUI: VocUI = DialogVocUI(),
-        var repository: VocRepository = VocRepositoryImpl(),
+        var dataSource: VocDataSource = VocLocalDataSource(),
         var historyStore: VocStore = VocHistoryStore(),
     )
 
