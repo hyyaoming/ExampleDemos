@@ -2,87 +2,108 @@ package com.example.sampleview.eventtracker.strategy
 
 import com.example.sampleview.eventtracker.EventTrackerConfig
 import com.example.sampleview.eventtracker.model.Event
-import com.example.sampleview.eventtracker.model.EventUploadResult
+import com.example.sampleview.eventtracker.model.EventResult
+import com.example.sampleview.eventtracker.model.UploadMode
 import com.example.sampleview.eventtracker.queue.EventQueue
+import com.example.sampleview.eventtracker.queue.InMemoryEventQueue
 import com.example.sampleview.eventtracker.store.PersistentEventStore
 import com.example.sampleview.eventtracker.upload.EventUploader
-import com.example.sampleview.eventtracker.queue.InMemoryEventQueue
 
 /**
- * 事件上传策略接口。
+ * **事件上传策略接口**
  *
- * 每个策略负责定义事件的上报方式，例如：
- * 1. 即时上传 [ImmediateUploadStrategy] 事件产生后立即上传。
- * 2. 批量上传 [BatchUploadStrategy] 事件入队，达到批次条件时才上传。
+ * 定义事件的处理与上传规则，是事件上报框架的核心扩展点。
+ * 每个实现类负责：
+ * 1. 决定事件是立即上传还是入队等待；
+ * 2. 管理内存/持久化队列；
+ * 3. 调用 [EventUploader] 执行上传。
  *
- * 通过实现该接口，可以灵活定制事件的处理和上传逻辑。
+ * ### 常见实现
+ * - [ImmediateUploadStrategy]：事件产生后立即上传；
+ * - [BatchUploadStrategy]：事件入队，满足批量条件后再上传。
+ *
+ * 通过实现该接口，可以灵活定制上传逻辑与队列管理。
  */
 interface EventUploadStrategy {
     /**
-     * 判断策略是否满足条件，可以触发上传。
-     *
-     * - 对于立即上传策略，通常返回 true；
-     * - 对于批量上传策略，可根据队列大小或其他条件判断；
-     * - 默认实现返回 true，表示总是可以上传。
-     *
-     * @return true 表示可以触发上传，false 表示暂不上传
+     * 当前策略的名称
      */
-    fun shouldUpload(): Boolean {
+    val strategyName: String
+
+    /**
+     * 判断是否满足触发上传的条件。
+     *
+     * - 即时上传策略：通常始终返回 `true`；
+     * - 批量上传策略：根据队列大小、时间间隔等条件判断；
+     * - 默认实现：总是返回 `true`。
+     *
+     * @return `true` 表示可以上传，`false` 表示暂不上传。
+     */
+    suspend fun shouldUpload(): Boolean {
         return true
     }
 
     /**
-     * 实际执行上传的 [EventUploader]，可为基础上传器或带重试机制的包装器
+     * 实际执行上传的组件。
+     *
+     * 可以是基础上传器，也可以是带重试、日志等包装的上传器。
      */
     val eventUploader: EventUploader
 
     /**
-     * 上传及队列相关配置，如批量大小、重试次数、延迟等
+     * 上传及队列相关配置，例如批量大小、重试次数、延迟等。
      */
     val uploaderConfig: EventTrackerConfig.UploaderConfig
 
     /**
-     * 事件队列，用于缓存事件。
+     * 事件队列，用于缓存待上传的事件。
      *
-     * 可以是内存队列（如 [InMemoryEventQueue]）或者支持持久化的队列。
-     * 对于即时上传策略可为空。
+     * - 可为内存队列（如 [InMemoryEventQueue]），也可为持久化队列；
+     * - 即时上传策略可能不使用队列，可为 `null`。
      */
     val queue: EventQueue?
 
     /**
-     * 可选的持久化存储，用于在进程重启或异常情况下恢复事件。
+     * 事件持久化存储，用于在进程重启或异常时恢复事件。
      *
-     * - 对于支持恢复功能的策略（如批量上传），通常会提供实现
-     * - 对于即时上传策略，可为空
+     * - 批量上传策略通常提供实现；
+     * - 即时上传策略可为 `null`。
      */
-    val store: PersistentEventStore?
+    val store: PersistentEventStore
 
     /**
      * 处理单个事件。
      *
-     * - 策略实现决定事件是立即上传还是入队等待批量上传
-     * - 如果队列满或达到上传条件，可能触发批量上传
+     * 流程：
+     * 1. 根据策略决定是立即上传还是入队；
+     * 2. 若队列已满足条件，可触发批量上传；
+     * 3. 返回事件的处理或上传结果。
      *
-     * @param event 待处理的事件对象
-     * @return [EventUploadResult] 表示事件处理或上传的结果
+     * @param event 待处理事件
+     * @return [EventResult] 事件的处理或上传结果：
+     * - [EventResult.UploadSuccess] 上传成功
+     * - [EventResult.UploadFailure] 上传失败
+     * - [EventResult.Queued] 入队等待
+     * - [EventResult.Empty] 队列未满或无需上传
      */
-    suspend fun handle(event: Event): EventUploadResult
+    suspend fun handle(event: Event): EventResult
 
     /**
      * 批量上传已缓存的事件。
      *
-     * - 如果队列为空，返回 [EventUploadResult.Empty]
-     * - 上传成功会移除队列或持久化存储中的事件
-     *
-     * @return [EventUploadResult] 批量上传结果
+     * - 对批量策略：上传队列或存储中的事件；
+     * - 上传成功后移除对应事件；
+     * - 队列为空时返回 [EventResult.Empty]。
      */
-    suspend fun flush(): EventUploadResult
+    suspend fun flush()
 
     /**
-     * 从持久化存储恢复事件到策略队列中（可选）。
+     * 从持久化存储恢复事件到队列（可选）。
      *
-     * - 如果没有持久化存储或存储为空，方法可为空实现
-     * - 通常在应用启动时调用，以保证事件不会丢失
+     * - 若存储为空或策略不支持持久化，此方法可为空实现；
+     * - 通常在应用启动时调用，以确保事件不丢失。
+     *
+     * @param uploadMode 上传模式（如即时、延迟、定时）
      */
-    suspend fun restore()
+    suspend fun recoverAndUpload(uploadMode: UploadMode)
 }

@@ -4,19 +4,28 @@ import com.example.sampleview.AppLogger
 import com.example.sampleview.eventtracker.dispatcher.EventDispatcher
 import com.example.sampleview.eventtracker.interceptor.EventInterceptor
 import com.example.sampleview.eventtracker.interceptor.RealEventInterceptorChain
+import com.example.sampleview.eventtracker.logger.TrackerLogger
 import com.example.sampleview.eventtracker.model.Event
-import com.example.sampleview.eventtracker.model.EventUploadResult
 import com.example.sampleview.eventtracker.plugin.EventPlugin
 
-
 /**
- * 事件处理管道，用于将事件依次经过拦截器、插件和调度器。
+ * 事件处理管道 [EventPipeline]，负责将事件依次经过拦截器链、插件链和事件调度器。
  *
- * 流程：
- * 1. 拦截器链处理：可修改、过滤或阻止事件
- * 2. 插件 before 处理：在事件上传前执行扩展逻辑（如日志、埋点）
- * 3. Dispatcher 调度上传策略：根据事件上传模式选择对应策略处理事件
- * 4. 插件 after 处理：在事件上传后执行扩展逻辑（如统计、回调）
+ * ### 处理流程
+ * 1. **拦截器链处理**（EventInterceptor）：
+ *    - 可对事件进行修改、过滤或阻止。
+ *    - 通过 RealEventInterceptorChain 实现链式调用。
+ * 2. **插件 before 处理**（EventPlugin.onEventBeforeTrack）：
+ *    - 在事件上传前执行扩展逻辑，例如日志记录、埋点统计。
+ * 3. **事件调度**（EventDispatcher.dispatch）：
+ *    - 根据事件的上传模式选择合适的上传策略（Immediate / Batch）。
+ *    - 调用对应策略处理事件。
+ * 4. **插件 after 处理**（EventPlugin.onEventAfterTrack）：
+ *    - 在事件上传后执行扩展逻辑，例如回调、统计或二次处理。
+ *
+ * ### 异常处理
+ * - 拦截器、插件或 Dispatcher 异常不会抛出到外部。
+ * - 所有异常会被捕获并通过 [AppLogger] 记录警告日志，保证事件流程不中断。
  *
  * @property interceptors 已注册的事件拦截器列表
  * @property plugins 已注册的事件插件列表
@@ -31,40 +40,34 @@ class EventPipeline(
     /**
      * 处理单个事件的完整流程。
      *
-     * - 先经过拦截器链（可修改或阻止事件）
-     * - 然后执行插件的 `onEventBeforeTrack` 回调
-     * - 再通过 [dispatcher] 调度上传
-     * - 最后执行插件的 `onEventAfterTrack` 回调
+     * ### 步骤
+     * 1. 拷贝拦截器和插件快照，保证流程中列表不被修改。
+     * 2. 执行拦截器链，返回最终事件（可被过滤为 null）。
+     * 3. 执行插件的 `onEventBeforeTrack` 回调。
+     * 4. 调用 [EventDispatcher.dispatch] 将事件分发到对应上传策略。
+     * 5. 执行插件的 `onEventAfterTrack` 回调。
      *
-     * 异常安全：
-     * - 拦截器、插件或 Dispatcher 异常不会抛出，会被捕获并记录日志
+     * ### 异常安全
+     * - 拦截器、插件或 Dispatcher 内部异常不会中断流程。
+     * - 异常会被捕获并打印日志。
      *
-     * @param event 待处理事件
+     * @param event 待处理的事件
      */
     suspend fun process(event: Event) {
         try {
-            // 拷贝当前拦截器和插件快照，避免中途修改
             val interceptorSnapshot = interceptors.toList()
             val pluginSnapshot = plugins.toList()
 
-            // 1. 执行拦截器链
             val chain = RealEventInterceptorChain(interceptorSnapshot, 0, event)
             val finalEvent = chain.proceed() ?: return
 
-            // 2. 执行插件 before 回调
             pluginSnapshot.forEach { it.onEventBeforeTrack(finalEvent) }
 
-            // 3. 调用 Dispatcher 处理事件
-            val result = try {
-                dispatcher.dispatch(finalEvent)
-            } catch (t: Throwable) {
-                EventUploadResult.Failure(emptyList(), t)
-            }
+            val result = dispatcher.dispatch(finalEvent)
 
-            // 4. 执行插件 after 回调
             pluginSnapshot.forEach { it.onEventAfterTrack(finalEvent, result) }
         } catch (t: Throwable) {
-            AppLogger.w("EventPipeline", "EventPipeline.process failed: $t")
+            TrackerLogger.logger.log("EventPipeline.process failed: $t")
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.example.sampleview.eventtracker.model
 
+import java.util.UUID
+
 /**
  * 表示一个事件对象，用于埋点或上报。
  *
@@ -7,12 +9,15 @@ package com.example.sampleview.eventtracker.model
  * @property properties 事件相关的属性集合，可动态添加任意键值对
  * @property timestamp 事件创建时间，毫秒级时间戳
  * @property uploadMode 事件的上报策略，例如立即上传或批量上传
+ * @property persistenceMode 持久化模式
  */
 data class Event(
     val eventId: String,
     val properties: MutableMap<String, Any>,
     val timestamp: Long,
     val uploadMode: UploadMode,
+    val persistenceMode: PersistenceMode = PersistenceMode.ALWAYS_PERSIST,
+    val traceId: String = "${eventId}_${UUID.randomUUID()}",
 ) {
 
     override fun toString(): String {
@@ -47,6 +52,12 @@ data class Event(
         private var timestamp: Long = System.currentTimeMillis()
 
         /**
+         * 事件持久化模式，默认总是持久化
+         * 可通过 [persistenceMode] 方法手动设置
+         */
+        private var persistenceMode: PersistenceMode = PersistenceMode.ALWAYS_PERSIST
+
+        /**
          * 添加单个事件属性。
          *
          * @param key 属性名
@@ -70,6 +81,14 @@ data class Event(
          * @return 返回 Builder 本身以支持链式调用
          */
         fun uploadMode(mode: UploadMode) = apply { this.uploadMode = mode }
+
+        /**
+         * 设置事件的持久化模式。
+         *
+         * @param mode [PersistenceMode] 类型
+         * @return 返回 Builder 本身以支持链式调用
+         */
+        fun persistenceMode(mode: PersistenceMode) = apply { this.persistenceMode = mode }
 
         /**
          * 设置事件时间戳，默认使用当前时间。
