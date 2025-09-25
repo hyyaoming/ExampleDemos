@@ -1,6 +1,5 @@
 package com.example.sampleview.eventtracker.store
 
-import EventEntity
 import com.example.sampleview.eventtracker.EventTracker
 import com.example.sampleview.eventtracker.logger.TrackerLogger
 import com.example.sampleview.eventtracker.model.Event

@@ -54,6 +54,8 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.xcrash)
     implementation(libs.permissionx)
+    implementation(libs.exoplayer)
+    implementation(libs.exoplayerUI)
     implementation(libs.glide)
     implementation(libs.okhttp)
     implementation(libs.websocket)

@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.chad.library.adapter.base.BaseQuickAdapter
 import com.chad.library.adapter.base.viewholder.QuickViewHolder
+import com.example.sampleview.ad.AdActivity
 import com.example.sampleview.behavior.BehaviorActivity
 import com.example.sampleview.behavior.BottomSheetActivity
 import com.example.sampleview.crash.TestCrashActivity
@@ -25,6 +26,8 @@ import com.example.sampleview.loading.LoadingActivity
 import com.example.sampleview.log.LogActivity
 import com.example.sampleview.mvi.ui.LoginActivity
 import com.example.sampleview.permission.PermissionActivity
+import com.example.sampleview.player.ExoPlayerActivity
+import com.example.sampleview.player.VideoViewActivity
 import com.example.sampleview.popupmanager.PopupManagerActivity
 import com.example.sampleview.reddot.RedDotTestActivity
 import com.example.sampleview.taskScheduler.test.TaskActivity
@@ -36,6 +39,9 @@ import com.example.sampleview.websocket.WebSocketActivity
 
 class MainActivity : AppCompatActivity() {
     private val classArray = listOf(
+        AdActivity::class.java,
+        ExoPlayerActivity::class.java,
+        VideoViewActivity::class.java,
         VocActivity::class.java,
         EventTrackActivity::class.java,
         TaskFlowActivity::class.java,

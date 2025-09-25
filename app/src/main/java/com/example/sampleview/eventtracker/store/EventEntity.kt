@@ -1,3 +1,5 @@
+package com.example.sampleview.eventtracker.store
+
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.sampleview.eventtracker.model.Event

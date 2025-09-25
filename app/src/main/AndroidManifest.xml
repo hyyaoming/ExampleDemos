@@ -58,6 +58,9 @@
         <activity android:name="com.example.sampleview.taskflowengine.TaskFlowActivity" />
         <activity android:name="com.example.sampleview.eventtracker.EventTrackActivity" />
         <activity android:name="com.example.sampleview.voc.VocActivity" />
+        <activity android:name="com.example.sampleview.player.ExoPlayerActivity" />
+        <activity android:name="com.example.sampleview.player.VideoViewActivity" />
+        <activity android:name="com.example.sampleview.ad.AdActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

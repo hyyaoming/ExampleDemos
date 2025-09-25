@@ -23,6 +23,8 @@ workManager = '2.8.1'
 coroutines = '1.7.3'
 gson = "2.10.1"
 permissionx = "1.8.1"
+exoplayer = "1.8.0"
+exoplayerUI = "1.8.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,6 +55,8 @@ workManager = { module = "androidx.work:work-runtime-ktx", version.ref = "workMa
 coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 gson-api = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 permissionx = { group = "com.guolindev.permissionx", name = "permissionx", version.ref = "permissionx" }
+exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "exoplayer" }
+exoplayerUI = { group = "androidx.media3", name = "media3-ui", version.ref = "exoplayerUI" }
 
 glideCompiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glideVersion" }
 [plugins]
