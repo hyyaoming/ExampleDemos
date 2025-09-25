@@ -11,6 +11,7 @@ import com.example.sampleview.eventtracker.queue.InMemoryEventQueue
 import com.example.sampleview.eventtracker.store.PersistentEventStore
 import com.example.sampleview.eventtracker.upload.EventUploader
 import com.example.sampleview.eventtracker.upload.RetryingUploader
+import kotlinx.coroutines.sync.withLock
 
 /**
  * **ImmediateUploadStrategy** - 即时上传策略。
@@ -69,14 +70,16 @@ class ImmediateUploadStrategy(
             store.persist(listOf(event))
             TrackerLogger.logger.log("$strategyName 事件已持久化: $event")
         }
-        return if (!NetworkStateMonitor.isNetworkAvailable) {
-            TrackerLogger.logger.log("$strategyName 网络不可用, 事件等待重试: $event")
-            return EventResult.NetworkUnavailable(listOf(event))
-        } else {
-            TrackerLogger.logger.log("$strategyName 网络可用, 准备上传事件: $event")
-            val result = upload()
-            TrackerLogger.logger.log("$strategyName 上传结果: $result")
-            result
+        return uploadLock.withLock {
+            if (!NetworkStateMonitor.isNetworkAvailable) {
+                TrackerLogger.logger.log("$strategyName 网络不可用, 事件等待重试: $event")
+                return EventResult.NetworkUnavailable(listOf(event))
+            } else {
+                TrackerLogger.logger.log("$strategyName 网络可用, 准备上传事件: $event")
+                val result = upload()
+                TrackerLogger.logger.log("$strategyName 上传结果: $result")
+                result
+            }
         }
     }
 }

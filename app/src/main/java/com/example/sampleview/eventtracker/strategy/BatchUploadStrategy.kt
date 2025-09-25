@@ -12,22 +12,25 @@ import com.example.sampleview.eventtracker.queue.InMemoryEventQueue
 import com.example.sampleview.eventtracker.store.PersistentEventStore
 import com.example.sampleview.eventtracker.upload.EventUploader
 import com.example.sampleview.eventtracker.upload.RetryingUploader
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
- * **BatchUploadStrategy** - 批量上传策略。
+ * **BatchUploadStrategy** - 批量上传策略（协程安全版本）。
  *
- * 基于内存队列管理事件，达到批量条件时统一上传。
- * 上传失败会重试，并可通过持久化机制保证事件不丢失。
- * 可感知网络状态，避免无效上传。
+ * 该策略基于内存队列管理事件，当队列达到批量上传条件时统一触发上传。
+ * 上传失败会进行重试，并通过持久化机制保证事件不丢失。
+ * 支持感知网络状态，避免无效上传。
  *
  * ### 特性
  * 1. 所有事件先写入队列，达到批量条件后统一上传；
  * 2. 上传失败会重试，并将失败事件重新入队；
  * 3. 根据 [UploadMode] 支持持久化恢复；
- * 4. 可感知网络状态，避免无效上传。
+ * 4. 可感知网络状态，避免无效上传；
+ * 5. 使用协程 [Mutex] 确保策略内部上传操作串行执行，保证并发安全。
  *
  * ### 使用场景
- * - 适合对实时性要求不高，但注重批量高效上传的场景；
+ * - 对实时性要求不高，但注重批量高效上传的场景；
  * - 避免高频率网络请求，提升性能和稳定性。
  *
  * @property uploaderConfig 上传配置（批量大小、队列容量等）
@@ -44,10 +47,13 @@ open class BatchUploadStrategy(
     override val strategyName: String = "批量上报策略",
 ) : EventUploadStrategy {
 
+    /** 协程互斥锁，确保策略内部上传操作串行执行，避免并发冲突 */
+    override val uploadLock = Mutex()
+
     /**
      * 判断队列是否满足批量上传条件。
      *
-     * @return `true` 当队列中事件数量 ≥ [EventTrackerConfig.UploaderConfig.batchSize]；
+     * @return `true` 当队列中事件数量 ≥ [EventTrackerConfig.UploaderConfig.batchSize]
      *         `false` 否则
      */
     override suspend fun shouldUpload(): Boolean {
@@ -57,14 +63,14 @@ open class BatchUploadStrategy(
     /**
      * 处理单个事件。
      *
-     * 逻辑：
+     * 流程：
      * 1. 将事件加入队列；
      * 2. 对于 [PersistenceMode.ALWAYS_PERSIST] 事件，持久化存储；
-     * 3. 如果队列已达到批量上传条件且网络可用，则触发上传；
+     * 3. 若队列达到批量上传条件且网络可用，则触发上传；
      * 4. 否则返回排队或网络不可用状态。
      *
      * @param event 待处理事件
-     * @return [EventResult] 上传或排队的结果：
+     * @return [EventResult] 上传或排队的结果
      *   - [EventResult.UploadSuccess] 上传成功
      *   - [EventResult.UploadFailure] 上传失败
      *   - [EventResult.NetworkUnavailable] 网络不可用
@@ -74,33 +80,35 @@ open class BatchUploadStrategy(
         TrackerLogger.logger.log("$strategyName 处理事件: $event")
         queue.offer(event)
         TrackerLogger.logger.log("$strategyName 事件已入队, 当前队列大小: ${queue.size()}")
+
         if (event.persistenceMode == PersistenceMode.ALWAYS_PERSIST) {
             store.persist(listOf(event))
             TrackerLogger.logger.log("$strategyName 事件已持久化: $event")
         }
-        return if (shouldUpload()) {
-            if (NetworkStateMonitor.isNetworkAvailable) {
+
+        return uploadLock.withLock {
+            if (shouldUpload() && NetworkStateMonitor.isNetworkAvailable) {
                 TrackerLogger.logger.log("$strategyName 队列达到批量上传条件, 网络可用, 准备上传")
                 upload()
-            } else {
+            } else if (!NetworkStateMonitor.isNetworkAvailable) {
                 TrackerLogger.logger.log("$strategyName 队列达到批量上传条件, 但网络不可用")
                 EventResult.NetworkUnavailable(listOf(event))
+            } else {
+                TrackerLogger.logger.log("$strategyName 队列未达到批量上传条件, 事件排队等待: $event")
+                EventResult.Queued(listOf(event))
             }
-        } else {
-            TrackerLogger.logger.log("$strategyName 队列未达到批量上传条件, 事件排队等待: $event")
-            EventResult.Queued(listOf(event))
         }
     }
 
     /**
-     * 主动刷新队列中的事件。
+     * 主动刷新队列中的事件（协程安全）。
      *
      * - 循环检查队列是否满足上传条件；
      * - 若满足且网络可用，则批量上传事件；
      * - 上传失败的事件会重新入队；
      * - 循环直到队列不满足上传条件或网络不可用。
      */
-    override suspend fun flush() {
+    override suspend fun flush() = uploadLock.withLock {
         TrackerLogger.logger.log("$strategyName 开始 flush 队列中的事件")
         var continueUpload = true
         while (continueUpload) {
@@ -119,7 +127,7 @@ open class BatchUploadStrategy(
     }
 
     /**
-     * 从持久化存储恢复事件并重新入队。
+     * 从持久化存储恢复事件并重新入队（协程安全）。
      *
      * - 用于进程重启或应用崩溃后恢复未上传事件；
      * - 将恢复的事件加入队列并调用 [flush]；
@@ -127,7 +135,7 @@ open class BatchUploadStrategy(
      *
      * @param uploadMode 事件的上传模式
      */
-    override suspend fun recoverAndUpload(uploadMode: UploadMode) {
+    override suspend fun recoverAndUpload(uploadMode: UploadMode) = uploadLock.withLock {
         TrackerLogger.logger.log("$strategyName 开始恢复并上传持久化事件, uploadMode=$uploadMode")
         val events = store.restore(uploadMode)
         TrackerLogger.logger.log("$strategyName 恢复到队列中的事件数量: ${events.size}")
@@ -154,7 +162,7 @@ open class BatchUploadStrategy(
 
         if (batch.isEmpty()) {
             TrackerLogger.logger.log("$strategyName 队列为空, 无需上传")
-            EventResult.Empty
+            return EventResult.Empty
         }
 
         val result = eventUploader.uploadBatch(batch)
@@ -169,6 +177,7 @@ open class BatchUploadStrategy(
                 }
             queue.addAll(batch)
         }
+
         if (result is EventResult.UploadSuccess) {
             TrackerLogger.logger.log("$strategyName 上传成功, 移除持久化事件: $batch")
             store.remove(batch)
